@@ -1,0 +1,16 @@
+# Test artifacts
+test-race-dir/
+test-source/
+test-deploy/
+reads.log
+
+# Editor
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

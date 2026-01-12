@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: '.'
+          severity: warning
+
+  test-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run deployment test
+        run: |
+          chmod +x deploy.sh
+          mkdir -p test-source
+          echo "test" > test-source/index.html
+          ./deploy.sh test-source test-deploy
+          # Verify symlink exists and points correctly
+          test -L test-deploy/current
+          cat test-deploy/current/index.html | grep -q "test"
+      - name: Run race condition test
+        run: |
+          chmod +x test-race.sh
+          ./test-race.sh
+
+  test-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run deployment test
+        run: |
+          chmod +x deploy.sh
+          mkdir -p test-source
+          echo "test" > test-source/index.html
+          ./deploy.sh test-source test-deploy
+          # Verify symlink exists and points correctly
+          test -L test-deploy/current
+          cat test-deploy/current/index.html | grep -q "test"
+      - name: Verify Python path used on macOS
+        run: |
+          # Ensure we're hitting the BSD codepath
+          chmod +x deploy.sh
+          mkdir -p test-source2
+          echo "test2" > test-source2/index.html
+          # Run with debug output
+          bash -x ./deploy.sh test-source2 test-deploy2 2>&1 | grep -q "python3"
