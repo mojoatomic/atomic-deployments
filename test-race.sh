@@ -30,7 +30,7 @@ echo ""
 reader_pid=$!
 
 # Writer loop - rapidly swaps symlink using naive approach
-for i in {1..1000}; do
+for _ in {1..1000}; do
   ln -sfn releases/v1 current
   ln -sfn releases/v2 current
 done

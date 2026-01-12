@@ -2,8 +2,8 @@
 # deploy.sh - Atomic deployment via symlink swap
 set -euo pipefail
 
-readonly SCRIPT_NAME="${0##*/}"
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_NAME="${0##*/}"
+readonly SCRIPT_NAME
 
 # Global state for cleanup and rollback
 PREVIOUS_RELEASE=""
@@ -63,9 +63,6 @@ rollback() {
         log "No previous release to rollback to"
         return 0
     fi
-
-    # Extract release id from path (e.g., "releases/20260112" -> "20260112")
-    local prev_id="${PREVIOUS_RELEASE##*/}"
 
     if [[ ! -d "$PREVIOUS_RELEASE" ]]; then
         error "Previous release directory missing: $PREVIOUS_RELEASE"
@@ -259,11 +256,13 @@ main() {
     mkdir -p "$deployment_root" || die "Failed to create deployment root: $deployment_root"
     cd "$deployment_root" || die "Cannot change to deployment root: $deployment_root"
 
-    acquire_lock "$deployment_root"
+    acquire_lock "."
 
     create_directory_structure "$deployment_root"
 
-    readonly release_id="$(generate_release_id)"
+    local release_id
+    release_id="$(generate_release_id)"
+    readonly release_id
     # Absolute path for logging/external use; activate_release uses relative paths
     # since we've cd'd to deployment_root
     readonly release_dir="$deployment_root/releases/$release_id"
