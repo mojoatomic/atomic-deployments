@@ -244,10 +244,14 @@ main() {
 
     [[ $# -eq 2 ]] || { usage; exit 1; }
 
-    readonly source_dir="$1"
+    local source_dir="$1"
     readonly deployment_root="$2"
 
     [[ -d "$source_dir" ]] || die "Source directory does not exist: $source_dir"
+
+    # Convert to absolute path before cd'ing to deployment_root
+    source_dir="$(cd "$source_dir" && pwd)"
+    readonly source_dir
 
     log "Starting deployment"
     log "Source: $source_dir"
@@ -258,14 +262,13 @@ main() {
 
     acquire_lock "."
 
-    create_directory_structure "$deployment_root"
+    create_directory_structure "."
 
     local release_id
     release_id="$(generate_release_id)"
     readonly release_id
-    # Absolute path for logging/external use; activate_release uses relative paths
-    # since we've cd'd to deployment_root
-    readonly release_dir="$deployment_root/releases/$release_id"
+    # Use relative path since we've cd'd to deployment_root
+    readonly release_dir="releases/$release_id"
 
     log "Release ID: $release_id"
 
